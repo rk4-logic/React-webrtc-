@@ -40,10 +40,26 @@ const RoomPage = () => {
   );
 
   const sendStreams = useCallback(() => {
-    for (const track of myStream.getTracks()) {
-      peer.peer.addTrack(track, myStream);
+    try {
+      if (!myStream) return;
+
+      let alertShown = false; 
+
+      for (const track of myStream.getTracks()) {
+        if (!peer.peer.getSenders().some(sender => sender.track === track)) {
+          peer.peer.addTrack(track, myStream);
+        } else {
+          if (!alertShown) { 
+            console.log("The track has already been added to the peer connection");
+            window.alert("The track has already been added to the peer connection");
+            alertShown = true; 
+          }
+        }
+      }
+    } catch (err) {
+      console.log("Error while adding Track", err);
     }
-  }, [myStream]);
+  }, [myStream, peer.peer]);
 
   const handleCallAccepted = useCallback(
     ({ from, ans }) => {
